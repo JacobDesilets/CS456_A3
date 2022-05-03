@@ -51,13 +51,14 @@ def gen_keys(bits):
     return p, g, a, b
 
 
-def encrypt(plaintext, p, g, a):
+def encrypt(plaintext, p, g, b):
     ciphertext = []
     for i in range(0, len(plaintext)):
         alpha = random.randint(2, p)
         hmask = pow(g, alpha, p)
-        fmask = pow(hmask, a, p)
-        ciphertext.append((hmask, (fmask * ord(plaintext[i])) % p))
+        fmask = pow(b, alpha, p)
+        cipher = (fmask * ord(plaintext[i])) % p
+        ciphertext.append((hmask, cipher))
 
     return ciphertext
 
@@ -73,16 +74,16 @@ def decrypt(ciphertext, p, a):
 
     return plaintext
 
+if __name__ == '__main__':
+    # Testing
+    p, g, a, b = gen_keys(128)
 
-p, g, a, b = gen_keys(128)
-
-message = 'This is a test of my ElGamal cryptosystem implementation'
-
-
-ciphertext = encrypt(message, p, g, a)
-print(ciphertext)
-plaintext = decrypt(ciphertext, p, a)
+    message = 'This is a test of my ElGamal cryptosystem implementation'
 
 
-print(plaintext)
+    ciphertext = encrypt(message, p, g, b)
+    print(ciphertext)
+    plaintext = decrypt(ciphertext, p, a)
 
+
+    print(plaintext)
