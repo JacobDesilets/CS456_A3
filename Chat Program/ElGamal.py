@@ -46,7 +46,6 @@ def gen_keys(bits):
     p = gen_p(bits)
     g = random.randint(3, p)
     a = random.randint(2, p)
-    
     b = pow(g, a, p)
 
     return p, g, a, b
@@ -77,10 +76,11 @@ def decrypt(ciphertext, p, a):
 
 p, g, a, b = gen_keys(128)
 
-message = 'This is a test'
+message = 'This is a test of my ElGamal cryptosystem implementation'
 
 
 ciphertext = encrypt(message, p, g, a)
+print(ciphertext)
 plaintext = decrypt(ciphertext, p, a)
 
 
