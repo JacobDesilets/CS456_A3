@@ -1,58 +1,88 @@
 import random
-from math import gcd
+
+def miller_rabin(n, d):
+    a = random.randint(2, n - 1)
+    x = pow(a, d, n)
+    if x == 1 or x == n - 1:
+        return True
+
+    while d != n - 1:
+        x = pow(x, 2, n)
+        d *= 2
+
+        if x == 1:
+            return False
+        elif x == n - 1:
+            return True
+
+    return False
+
+
+def is_prime(n, k=6):
+    if n == 2:
+        return True
+    elif n % 2 == 0:
+        return False
+
+    d = n - 1
+    while d % 2 == 0:
+        d //= 2
+
+    for i in range(k):
+        if not miller_rabin(n, d):
+            return False
+
+    return True
+
 
 def gen_p(nbits):
     while True:
         p = random.randint( 2**(nbits-2), 2**(nbits-1))
-        if p % 2 == 0:
-            continue
+        if is_prime(p, k=10):
+            return p
 
-        for i in range(2, p // 2 + 1):
-            if p % i == 0:
-                continue
 
-        return p
-
-def gen_key(q):
-    key = random.randint(pow(10, 20), q)
-    while gcd(q, key) != 1:
-        key = random.randint(pow(10, 20), q)
- 
-    return key
-
-def gen_keys():
-    p = gen_p(8)
-    g = random.randint(2, p)
-    a = random.randint(1, (p-1) // 2)
+def gen_keys(bits):
+    p = gen_p(bits)
+    g = random.randint(3, p)
+    a = random.randint(2, p)
     
     b = pow(g, a, p)
 
     return p, g, a, b
 
 
-def encrypt(txt, p, g, a):
-    alpha = random.randint(1, p)
-    hmask = pow(g, alpha, p)
-    fmask = pow(hmask, a, p)
-    
+def encrypt(plaintext, p, g, a):
     ciphertext = []
-    for i in range(0, len(txt)):
-        ciphertext.append((hmask, (fmask * ord(txt[i])) % p))
+    for i in range(0, len(plaintext)):
+        alpha = random.randint(2, p)
+        hmask = pow(g, alpha, p)
+        fmask = pow(hmask, a, p)
+        ciphertext.append((hmask, (fmask * ord(plaintext[i])) % p))
 
     return ciphertext
 
 
-def decrypt(h, c, a, p):
-    return (pow(pow(h, a, p), -1, p) * c) % p
+def decrypt(ciphertext, p, a):
+    plaintext = ''
+    for line in ciphertext:
+        hmask = line[0]
+        cipher = line[1]
+        f = pow(hmask, a, p)
+        m = (pow(f, -1, p) * cipher) % p
+        plaintext += chr(m)
+
+    return plaintext
 
 
-p, g, a, b = gen_keys()
+p, g, a, b = gen_keys(128)
 
-txt = 'This is a test'
-plaintxt = ''
+message = 'This is a test'
 
-ciphertext = encrypt(txt, p, g, a)
-for h, c in ciphertext:
-    plaintxt += chr(decrypt(h, c, a, p))
 
-print(plaintxt)
+ciphertext = encrypt(message, p, g, a)
+plaintext = decrypt(ciphertext, p, a)
+
+
+print(plaintext)
+
